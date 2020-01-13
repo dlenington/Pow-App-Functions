@@ -25,7 +25,7 @@ exports.signup = (req, res) => {
   const noImg = "no-image.png";
 
   let token, userId;
-  db.doc("/users/${newUser.handle}")
+  db.doc(`/users/${newUser.handle}`)
     .get()
     .then(doc => {
       if (doc.exists) {
@@ -46,7 +46,7 @@ exports.signup = (req, res) => {
         handle: newUser.handle,
         email: newUser.email,
         createdAt: new Date().toISOString(),
-        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${noImg}?alt=media`,
+        imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${noImg}?alt=media&token=733d17f3-74be-4762-82cd-4db6becfb79d`,
         userId
       };
       return db.doc(`/users/${newUser.handle}`).set(userCredentials);
