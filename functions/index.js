@@ -6,14 +6,14 @@ const cors = require("cors");
 app.use(cors());
 
 const {
-  getAllPaintings,
-  postOnePainting,
-  getPainting,
-  commentOnPainting,
-  likePainting,
-  unlikePainting,
-  deletePainting
-} = require("./handlers/paintings");
+  getAllPosts,
+  postOnePost,
+  getPost,
+  commentOnPost,
+  likePost,
+  unlikePost,
+  deletePost
+} = require("./handlers/posts");
 const {
   signup,
   login,
@@ -24,20 +24,20 @@ const {
   markNotificationsRead
 } = require("./handlers/users");
 
-app.get("/paintings", getAllPaintings);
-app.post("/paintings", FBAuth, postOnePainting);
-app.get("/paintings/:paintingId", getPainting);
-app.delete("/paintings/:paintingId", FBAuth, deletePainting);
-app.get(`/paintings/:paintingId/like`, FBAuth, likePainting);
-app.get(`/paintings/:paintingId/unlike`, FBAuth, unlikePainting);
-app.post("/paintings/:paintingId/comment", FBAuth, commentOnPainting);
+app.get("/posts", getAllPosts);
+app.post("/posts", FBAuth, postOnePost);
+app.get(`/posts/:postId`, getPost);
+app.delete(`/posts/:postId`, FBAuth, deletePost);
+app.get(`/posts/:postId/like`, FBAuth, likePost);
+app.get(`/posts/:postId/unlike`, FBAuth, unlikePost);
+app.post(`/posts/:postId/comment`, FBAuth, commentOnPost);
 
 app.post("/signup", signup);
 app.post("/login", login);
 app.post("/user/image", FBAuth, uploadImage);
 app.post("/user", FBAuth, addUserDetails);
 app.get("/user", FBAuth, getAuthenticatedUser);
-app.get("/user/:handle", getUserDetails);
+app.get(`/user/:handle`, getUserDetails);
 app.post("/notifications", FBAuth, markNotificationsRead);
 
 //Post a painting
@@ -49,7 +49,7 @@ exports.createNotificationOnLike = functions
   .firestore.document("likes/{id}")
   .onCreate(snapshot => {
     return db
-      .doc(`/paintings/${snapshot.data().paintingId}`)
+      .doc(`/posts/${snapshot.data().postId}`)
       .get()
       .then(doc => {
         if (
@@ -86,7 +86,7 @@ exports.createNotifcationOnComment = functions
   .firestore.document("comments/{id}")
   .onCreate(snapshot => {
     return db
-      .doc(`/paintings/${snapshot.data().paintingId}`)
+      .doc(`/paintings/${snapshot.data().postId}`)
       .get()
       .then(doc => {
         if (
@@ -119,12 +119,12 @@ exports.onUserImageChange = functions
       console.log("Image has changed");
       const batch = db.batch();
       return db
-        .collection("paintings")
+        .collection("posts")
         .where("userHandle", "==", change.before.data().handle)
         .get()
         .then(data => {
           data.forEach(doc => {
-            const painting = db.doc(`/paintings/${doc.id}`);
+            const painting = db.doc(`/posts/${doc.id}`);
             batch.update(painting, {
               userImage: change.after.data().imageUrl
             });
@@ -136,13 +136,13 @@ exports.onUserImageChange = functions
 
 exports.onPaintingDelete = functions
   .region("us-central1")
-  .firestore.document(`/paintings/{paintingId}`)
+  .firestore.document(`/posts/{postId}`)
   .onDelete((snapshot, context) => {
-    const paintingId = context.params.paintingId;
+    const postId = context.params.postId;
     const batch = db.batch();
     return db
       .collection("comments")
-      .where("paintingId", "==", paintingId)
+      .where("postId", "==", postId)
       .get()
       .then(data => {
         data.forEach(doc => {
@@ -150,7 +150,7 @@ exports.onPaintingDelete = functions
         });
         return db
           .collection("likes")
-          .where("paintingId", "==", paintingId)
+          .where("postId", "==", postId)
           .get();
       })
       .then(data => {
@@ -159,7 +159,7 @@ exports.onPaintingDelete = functions
         });
         return db
           .collection("notifications")
-          .where("paintingId", "==", paintingId)
+          .where("postId", "==", postId)
           .get();
       })
       .then(data => {

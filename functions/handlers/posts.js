@@ -1,14 +1,14 @@
 const { db } = require("../util/admin");
 
-exports.getAllPaintings = (req, res) => {
-  db.collection("paintings")
+exports.getAllPosts = (req, res) => {
+  db.collection("posts")
     .orderBy("createdAt", "desc")
     .get()
     .then(data => {
-      let paintings = [];
+      let posts = [];
       data.forEach(doc => {
-        paintings.push({
-          paintingId: doc.id,
+        posts.push({
+          postId: doc.id,
           body: doc.data().body,
           userHandle: doc.data().userHandle,
           createdAt: doc.data().createdAt,
@@ -17,7 +17,7 @@ exports.getAllPaintings = (req, res) => {
           userImage: doc.data().userImage
         });
       });
-      return res.json(paintings);
+      return res.json(posts);
     })
     .catch(err => {
       console.error(err);
@@ -25,12 +25,12 @@ exports.getAllPaintings = (req, res) => {
     });
 };
 
-exports.postOnePainting = (req, res) => {
+exports.postOnePost = (req, res) => {
   if (req.body.body.trim() === "") {
     return res.status(400).json({ body: "Body must not be empty" });
   }
 
-  const newPainting = {
+  const newPost = {
     body: req.body.body,
     userHandle: req.user.handle,
     userImage: req.user.imageUrl,
@@ -39,11 +39,11 @@ exports.postOnePainting = (req, res) => {
     commentCount: 0
   };
 
-  db.collection("paintings")
-    .add(newPainting)
+  db.collection("posts")
+    .add(newPost)
     .then(doc => {
-      const resPainting = newPainting;
-      resPainting.paintingId = doc.id;
+      const resPost = newPost;
+      resPost.postId = doc.id;
       res.json(resPainting);
     })
     .catch(err => {
@@ -52,28 +52,28 @@ exports.postOnePainting = (req, res) => {
     });
 };
 
-exports.getPainting = (req, res) => {
-  let paintingData = {};
-  db.doc(`/paintings/${req.params.paintingId}`)
+exports.getPost = (req, res) => {
+  let postData = {};
+  db.doc(`/posts/${req.params.postId}`)
     .get()
     .then(doc => {
       if (!doc.exists) {
-        return res.status(404).json({ error: "Painting not found" });
+        return res.status(404).json({ error: "Post not found" });
       }
-      paintingData = doc.data();
-      paintingData.paintingId = doc.id;
+      postData = doc.data();
+      postData.postId = doc.id;
       return db
         .collection("comments")
         .orderBy("createdAt", "desc")
-        .where("paintingId", "==", req.params.paintingId)
+        .where("postId", "==", req.params.postId)
         .get();
     })
     .then(data => {
-      paintingData.comments = [];
+      postData.comments = [];
       data.forEach(doc => {
-        paintingData.comments.push(doc.data());
+        postData.comments.push(doc.data());
       });
-      return res.json(paintingData);
+      return res.json(postData);
     })
     .catch(err => {
       console.error(err);
@@ -81,7 +81,7 @@ exports.getPainting = (req, res) => {
     });
 };
 
-exports.commentOnPainting = (req, res) => {
+exports.commentOnPost = (req, res) => {
   if (req.body.body.trim() === "")
     return res.status(400).json({ comment: "Must not be empty" });
 
@@ -93,7 +93,7 @@ exports.commentOnPainting = (req, res) => {
     userImage: req.user.imageUrl
   };
 
-  db.doc(`/paintings/${req.params.paintingId}`)
+  db.doc(`/posts/${req.params.postId}`)
     .get()
     .then(doc => {
       if (!doc.exists) {
@@ -113,27 +113,27 @@ exports.commentOnPainting = (req, res) => {
     });
 };
 
-//like a painting
-exports.likePainting = (req, res) => {
+//like a post
+exports.likePost = (req, res) => {
   const likeDocument = db
     .collection("likes")
     .where("userHandle", "==", req.user.handle)
-    .where("paintingId", "==", req.params.paintingId)
+    .where("postId", "==", req.params.postId)
     .limit(1);
 
-  const paintingDocument = db.doc(`/paintings/${req.params.paintingId}`);
+  const postDocument = db.doc(`/posts/${req.params.postId}`);
 
-  let paintingData;
+  let postData;
 
-  paintingDocument
+  postDocument
     .get()
     .then(doc => {
       if (doc.exists) {
-        paintingData = doc.data();
-        paintingData.paintingId = doc.id;
+        postData = doc.data();
+        postData.postId = doc.id;
         return likeDocument.get();
       } else {
-        return res.status(404).json({ error: "Painting not found" });
+        return res.status(404).json({ error: "Post not found" });
       }
     })
     .then(data => {
@@ -141,20 +141,20 @@ exports.likePainting = (req, res) => {
         return db
           .collection("likes")
           .add({
-            paintingId: req.params.paintingId,
+            paintingId: req.params.postId,
             userHandle: req.user.handle
           })
           .then(() => {
-            paintingData.likeCount++;
-            return paintingDocument.update({
-              likeCount: paintingData.likeCount
+            postData.likeCount++;
+            return postDocument.update({
+              likeCount: postData.likeCount
             });
           })
           .then(() => {
-            return res.json(paintingData);
+            return res.json(postData);
           });
       } else {
-        return res.status(400).json({ error: "Painting already liked" });
+        return res.status(400).json({ error: "Post already liked" });
       }
     })
     .catch(err => {
@@ -163,43 +163,43 @@ exports.likePainting = (req, res) => {
     });
 };
 
-exports.unlikePainting = (req, res) => {
+exports.unlikePost = (req, res) => {
   const likeDocument = db
     .collection("likes")
     .where("userHandle", "==", req.user.handle)
-    .where("paintingId", "==", req.params.paintingId)
+    .where("postId", "==", req.params.postId)
     .limit(1);
 
-  const paintingDocument = db.doc(`/paintings/${req.params.paintingId}`);
+  const postDocument = db.doc(`/posts/${req.params.postId}`);
 
-  let paintingData;
+  let postData;
 
-  paintingDocument
+  postDocument
     .get()
     .then(doc => {
       if (doc.exists) {
-        paintingData = doc.data();
-        paintingData.paintingId = doc.id;
+        postData = doc.data();
+        postData.postId = doc.id;
         return likeDocument.get();
       } else {
-        return res.status(404).json({ error: "Painting not found" });
+        return res.status(404).json({ error: "Post not found" });
       }
     })
     .then(data => {
       if (data.empty) {
-        return res.status(400).json({ error: "Painting not liked" });
+        return res.status(400).json({ error: "Post not liked" });
       } else {
         return db
           .doc(`/likes/${data.docs[0].id}`)
           .delete()
           .then(() => {
-            paintingData.likeCount--;
-            return paintingDocument.update({
-              likeCount: paintingData.likeCount
+            postData.likeCount--;
+            return postDocument.update({
+              likeCount: postData.likeCount
             });
           })
           .then(() => {
-            res.json(paintingData);
+            res.json(postData);
           });
       }
     })
@@ -209,13 +209,13 @@ exports.unlikePainting = (req, res) => {
     });
 };
 
-exports.deletePainting = (req, res) => {
-  const document = db.doc(`/paintings/${req.params.paintingId}`);
+exports.deletePost = (req, res) => {
+  const document = db.doc(`/posts/${req.params.postId}`);
   document
     .get()
     .then(doc => {
       if (!doc.exists) {
-        return res.status(404).json({ error: "Painting not found" });
+        return res.status(404).json({ error: "Post not found" });
       }
       if (doc.data().userHandle !== req.user.handle) {
         return res.status(403).json({ error: "Unauthorized" });
@@ -224,7 +224,7 @@ exports.deletePainting = (req, res) => {
       }
     })
     .then(() => {
-      res.json({ message: "Painting deleted succesfully" });
+      res.json({ message: "Post deleted succesfully" });
     })
     .catch(err => {
       console.error(err);
