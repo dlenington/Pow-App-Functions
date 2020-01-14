@@ -44,10 +44,10 @@ exports.postOnePost = (req, res) => {
     .then(doc => {
       const resPost = newPost;
       resPost.postId = doc.id;
-      res.json(resPainting);
+      res.json(resPost);
     })
     .catch(err => {
-      res.status(500).json({ error: "something went wrong" });
+      res.status(500).json({ error: "Something went wrong" });
       console.error(err);
     });
 };
