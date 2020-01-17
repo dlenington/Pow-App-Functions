@@ -88,7 +88,7 @@ exports.commentOnPost = (req, res) => {
   const newComment = {
     body: req.body.body,
     createdAt: new Date().toISOString(),
-    paintingId: req.params.paintingId,
+    postId: req.params.postId,
     userHandle: req.user.handle,
     userImage: req.user.imageUrl
   };

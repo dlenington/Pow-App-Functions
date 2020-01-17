@@ -26,18 +26,18 @@ const {
 
 app.get("/posts", getAllPosts);
 app.post("/posts", FBAuth, postOnePost);
-app.get(`/posts/:postId`, getPost);
-app.delete(`/posts/:postId`, FBAuth, deletePost);
-app.get(`/posts/:postId/like`, FBAuth, likePost);
-app.get(`/posts/:postId/unlike`, FBAuth, unlikePost);
-app.post(`/posts/:postId/comment`, FBAuth, commentOnPost);
+app.get("/posts/:postId", getPost);
+app.delete("/posts/:postId", FBAuth, deletePost);
+app.get("/posts/:postId/like", FBAuth, likePost);
+app.get("/posts/:postId/unlike", FBAuth, unlikePost);
+app.post("/posts/:postId/comment", FBAuth, commentOnPost);
 
 app.post("/signup", signup);
 app.post("/login", login);
 app.post("/user/image", FBAuth, uploadImage);
 app.post("/user", FBAuth, addUserDetails);
 app.get("/user", FBAuth, getAuthenticatedUser);
-app.get(`/user/:handle`, getUserDetails);
+app.get("/user/:handle", getUserDetails);
 app.post("/notifications", FBAuth, markNotificationsRead);
 
 //Post a painting
