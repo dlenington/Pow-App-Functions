@@ -62,7 +62,7 @@ exports.createNotificationOnLike = functions
             sender: snapshot.data().userHandle,
             type: "like",
             read: false,
-            screamId: doc.id
+            postId: doc.id
           });
         }
       })
@@ -99,7 +99,7 @@ exports.createNotifcationOnComment = functions
             sender: snapshot.data().userHandle,
             type: "comment",
             read: false,
-            paintingId: doc.id
+            postId: doc.id
           });
         }
       })
@@ -124,8 +124,8 @@ exports.onUserImageChange = functions
         .get()
         .then(data => {
           data.forEach(doc => {
-            const painting = db.doc(`/posts/${doc.id}`);
-            batch.update(painting, {
+            const post = db.doc(`/posts/${doc.id}`);
+            batch.update(post, {
               userImage: change.after.data().imageUrl
             });
           });
