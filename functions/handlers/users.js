@@ -111,7 +111,7 @@ exports.getUserDetails = (req, res) => {
       if (doc.exists) {
         userData.user = doc.data();
         return db
-          .collection("paintings")
+          .collection("posts")
           .where("userHandle", "==", req.params.handle)
           .orderBy("createdAt", "desc")
           .get();
@@ -120,16 +120,16 @@ exports.getUserDetails = (req, res) => {
       }
     })
     .then(data => {
-      userData.paintings = [];
+      userData.posts = [];
       data.forEach(doc => {
-        userData.paintings.push({
+        userData.posts.push({
           body: doc.data().body,
           createdAt: doc.data().createdAt,
           userHandle: doc.data().userHandle,
           userImage: doc.data().userImage,
           likeCount: doc.data().likeCount,
           commentCount: doc.data().commentCount,
-          paintingId: doc.id
+          postId: doc.id
         });
       });
       return res.json(userData);

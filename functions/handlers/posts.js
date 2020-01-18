@@ -141,7 +141,7 @@ exports.likePost = (req, res) => {
         return db
           .collection("likes")
           .add({
-            paintingId: req.params.postId,
+            postId: req.params.postId,
             userHandle: req.user.handle
           })
           .then(() => {

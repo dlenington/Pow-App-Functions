@@ -86,7 +86,7 @@ exports.createNotifcationOnComment = functions
   .firestore.document("comments/{id}")
   .onCreate(snapshot => {
     return db
-      .doc(`/paintings/${snapshot.data().postId}`)
+      .doc(`/posts/${snapshot.data().postId}`)
       .get()
       .then(doc => {
         if (
